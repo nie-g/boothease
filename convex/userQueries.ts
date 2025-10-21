@@ -18,3 +18,27 @@ export const listAllUsers = query({
     return await ctx.db.query("users").collect();
   },
 });
+
+export const getUserById = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
+    const user = await ctx.db.get(userId);
+    if (!user) return null;
+    return {
+      firstname: user.firstName,
+      lastname: user.lastName,
+      fullname: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      id: user._id.toString(),
+    };
+  },
+});
+
+export const getById = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
+    const user = await ctx.db.get(userId);
+    if (!user) return null;
+    return user;
+  },
+});

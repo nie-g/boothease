@@ -37,10 +37,41 @@ export const storeClerkUser = internalMutation({
         firstName: args.firstName,
         lastName: args.lastName,
         role: args.role,
+        status: "active",
         createdAt: Date.now(),
       });
       console.log("✅ Insert complete");
     }
+
+     if (args.role === "owner") {
+      // Check if this user already has a business profile
+      const existingProfile = await ctx.db
+        .query("business_profiles")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .unique();
+
+      // Create new business profile if none exists
+      if (!existingProfile) {
+        await ctx.db.insert("business_profiles", {
+          userId: userId,
+          businessName: "",
+          category: "",
+          description: "",
+          email: args.email, // you can prefill from users table if needed
+          phone: "",
+          website: "",
+          social_links: [],
+          address: "",
+          city: "",
+          province: "",
+          postalCode: "",
+          country: "Philippines",
+          createdAt: Date.now(),
+        });
+      }
+    }
+
+
 
   },
 });

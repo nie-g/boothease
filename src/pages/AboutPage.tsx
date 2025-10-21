@@ -42,11 +42,9 @@ const AboutPage: React.FC = () => {
 
       {/* Intro Section */}
       <section className="px-6 py-20 text-center">
-        <h1 className="text-4xl font-bold text-gray-900">About DesignSync</h1>
+        <h1 className="text-4xl font-bold text-gray-900">About BoothEase</h1>
         <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
-          Where creativity meets collaboration. DesignSync is more than a design
-          tool — it's a community where clients and designers come together to
-          make fashion ideas real.
+          Where efficiency meets creativity.
         </p>
       </section>
 

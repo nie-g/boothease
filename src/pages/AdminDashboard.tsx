@@ -1,53 +1,99 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import Sidebar from "../components/Sidebar";
+import TestNavbar from "../components/TestNavbar";
+import SummaryCards from "./adminDashboard/SummaryCards";
+import ChartsSection from "./adminDashboard/ChartsSection";
+import DataSections from "./adminDashboard/DataSection";
+import HeaderSection from "./adminDashboard/HeaderSection";
 
-import ClientNavbar from "../components/UsersNavbar";
-import DynamicSidebar from "../components/DynamicSidebar";
 
+const UserDashboard: React.FC = () => {
+  const { user } = useUser();
 
-const AdminDashboard: React.FC = () => {
-  const navigate = useNavigate();
-  const { user: clerkUser } = useUser();
-
-  const currentUser = useQuery(
+  const dbUser = useQuery(
     api.userQueries.getUserByClerkId,
-    clerkUser ? { clerkId: clerkUser.id } : "skip"
+    user?.id ? { clerkId: user.id } : "skip"
   );
 
-  if (!clerkUser || !currentUser) {
+  const likedEvents = useQuery(
+    api.event_likes.getLikedEventsByUser,
+    dbUser?._id ? { userId: dbUser._id } : "skip"
+  );
+
+  const reservations = useQuery(
+    api.reservations.getByRenter,
+    dbUser?._id ? { renterId: dbUser._id } : "skip"
+  );
+
+  const now = new Date();
+  const previousBookings = useMemo(
+    () => reservations?.filter((r) => new Date(r.endDate) < now) || [],
+    [reservations]
+  );
+  const upcomingBookings = useMemo(
+    () => reservations?.filter((r) => new Date(r.startDate) > now) || [],
+    [reservations]
+  );
+
+  // Chart Data
+  const chartData =
+    reservations?.map((r) => ({
+      month: new Date(r.startDate).toLocaleString("default", { month: "short" }),
+      bookings: 1,
+    })) || [];
+
+  if (dbUser === undefined) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="p-4 text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
+      <div className="w-full h-screen flex items-center justify-center text-gray-500">
+        Loading your dashboard...
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FFF9E9]">
-      {/* Navbar always on top */}
-      <ClientNavbar />
+    <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-[#ebeff5] overflow-hidden">
+      {/* Navbar */}
+      <div className="w-full flex-none h-[13vh]">
+        <TestNavbar />
+      </div>
 
-      {/* Main section with sidebar + content */}
-      <div className="flex flex-1">
-        {/* Sidebar on the left */}
-        <DynamicSidebar />
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <aside className="w-1/6 min-w-[220px] bg-white/60 backdrop-blur-sm border-r border-gray-200">
+          <Sidebar />
+        </aside>
 
-        {/* Content area */}
-        <main className="flex-1 p-6 md:p-8 flex flex-col gap-6 overflow-auto">
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto p-6 md:p-10 space-y-10">
           <motion.div
-            className="bg-white shadow-md rounded-lg p-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
+            className="space-y-10"
           >
-            {/* Your renter content here */}
+            {/* Welcome Header */}
+            <HeaderSection />
+
+            {/* Summary Cards */}
+            <SummaryCards
+              likedEventsCount={likedEvents?.length || 0}
+              totalBookings={reservations?.length || 0}
+              previousCount={previousBookings.length}
+              upcomingCount={upcomingBookings.length}
+            />
+
+            {/* Charts */}
+            <ChartsSection chartData={chartData} reservations={reservations ?? []} />
+
+            {/* Data Lists */}
+            <DataSections
+              likedEvents={likedEvents ?? []}
+              previousBookings={previousBookings}
+            />
           </motion.div>
         </main>
       </div>
@@ -55,4 +101,4 @@ const AdminDashboard: React.FC = () => {
   );
 };
 
-export default AdminDashboard;
+export default UserDashboard;

@@ -4,10 +4,8 @@ import { motion } from "framer-motion";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-
 import ClientNavbar from "../components/UsersNavbar";
 import DynamicSidebar from "../components/DynamicSidebar";
-
 
 const RenterDashboard: React.FC = () => {
   const navigate = useNavigate();

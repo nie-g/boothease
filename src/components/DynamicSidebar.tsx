@@ -49,12 +49,12 @@ const Sidebar: React.FC = () => {
   const getThemeColor = () => {
     switch (userType) {
       case "admin":
-        return { text: "text-gray-800", hover: "hover:bg-orange-100" };
+        return { text: "text-[#486284]", hover: "hover:bg-slate-300" };
       case "owner":
-        return { text: "text-gray-800", hover: "hover:bg-orange-100" };
+        return { text: "text-[#486284]", hover: "hover:bg-slate-300" };
       case "renter":
       default:
-        return { text: "text-gray-800", hover: "hover:bg-gray-300" };
+        return { text: "text-[#486284]", hover: "hover:bg-slate-300" };
     }
   };
 
@@ -68,26 +68,26 @@ const Sidebar: React.FC = () => {
           { name: "Dashboard", icon: <Home />, route: "/admin" },
           { name: "Users", icon: <Users />, route: "/admin/users" },
           { name: "Requests", icon: <FileText />, route: "/admin/requests" },
-          { name: "Designs", icon: <Palette />, route: "/admin/designs" },
-          { name: "Templates & Pricing", icon: <Layers />, route: "/admin/templates" },
-          { name: "Inventory", icon: <Box />, route: "/admin/inventory" },
+          { name: "Events & Booths", icon: <Palette />, route: "/admin/events" },
           { name: "Notifications", icon: <BellIcon />, route: "/notifications" },
           { name: "Reports", icon: <BarChart />, route: "/admin/reports" },
          
         ];
       case "owner":
         return [
-          { name: "Business Profile", icon: <Home />, route: "/designer" },
-          { name: "Events & Booths", icon: <NotebookPenIcon />, route: "/designer/tasks" },
-          { name: "Reservations", icon: <Images />, route: "/designer/gallery" },
+          { name: "Dashboard", icon: <Home />, route: "/owner" },
+          { name: "Business Profile", icon: <Home />, route: "/owner/businessprofile" },
+          { name: "Events & Booths", icon: <NotebookPenIcon />, route: "/owner/events" },
+          { name: "Reservations", icon: <Images />, route: "/owner/reservations" },
         
         ];
       case "renter":
       default:
         return [
-         { name: "Business Profile", icon: <Home />, route: "/designer" },
-         { name: "Events & Booths", icon: <NotebookPenIcon />, route: "/designer/tasks" },
-         { name: "Reservations", icon: <Images />, route: "/designer/gallery" },
+         { name: "Dashboard", icon: <Home />, route: "/renter" },
+         { name: "Business Profile", icon: <Home />, route: "/renter/businessprofile" },
+         { name: "Events & Booths", icon: <NotebookPenIcon />, route: "/renter/events" },
+         { name: "Reservations", icon: <Images />, route: "/renter/reservations" },
         ];
     }
   };
@@ -95,58 +95,38 @@ const Sidebar: React.FC = () => {
   const navItems = getNavItems();
 
   return (
-    <aside
-  className={`bg-[#F2F4F8] text-gray-800 transition-all duration-300 ease-in-out ${
-    isSmallScreen ? "w-20" : "w-64"
-  } sticky top-0 h-screen flex flex-col`}
->
-  {/* Logo */}
-  
+   <aside
+    className={`bg-slate-100 text-[#486284] font-semibold transition-all duration-300 ease-in-out ${
+      isSmallScreen ? "w-20" : "w-58"
+    } flex flex-col min-h-screen overflow-y-auto`}
+  >
 
-  {/* Scrollable Nav */}
-  <nav className="flex-1 overflow-y-hidden mt-6  space-y-2">
-    {navItems.map((item) => (
-      <Link
-        key={item.name}
-        to={item.route}
-        className={`flex items-center  p-4 rounded-lg space-x-3 transition-all relative ${hover}`}
-      >
-        <span className={`${text} relative`}>
-          {item.icon}
-          {item.name === "Notifications" && unreadCount > 0 && (
-            <NotificationBadge
-              count={unreadCount}
-              size="sm"
-              color="red"
-              className="animate-pulse"
-            />
-          )}
-        </span>
-        {!isSmallScreen && (
-          <span className="flex items-center">
-            {item.name}
+    {/* Scrollable nav */}
+    <nav className="flex-1 mt-4 space-y-1 overflow-y-auto">
+      {navItems.map((item) => (
+        <Link key={item.name} to={item.route} className={`flex items-center p-4 rounded-lg space-x-3 ${hover}`}>
+          <span className={`${text} relative`}>
+            {item.icon}
             {item.name === "Notifications" && unreadCount > 0 && (
-              <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full min-w-[20px] text-center">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
+              <NotificationBadge count={unreadCount} size="sm" color="red" className="animate-pulse" />
             )}
           </span>
-        )}
-      </Link>
-    ))}
-  </nav>
 
-  {/* Logout (footer) */}
-  <div className="px-4 py-5 flex-shrink-0">
-    <button
-      onClick={handleLogout}
-      className="flex items-center space-x-3 text-red-300 hover:text-red-500"
-    >
-      <LogOut />
-      {!isSmallScreen && <span>Sign Out</span>}
-    </button>
-  </div>
-</aside>
+          {!isSmallScreen && (
+            <span className="flex items-center">
+              {item.name}
+              {item.name === "Notifications" && unreadCount > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full min-w-[20px] text-center">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </span>
+          )}
+        </Link>
+      ))}
+    </nav>
+    </aside>
+
 
   );
 };

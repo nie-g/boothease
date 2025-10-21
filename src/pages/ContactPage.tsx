@@ -36,17 +36,17 @@ const AboutPage: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
-      className="font-sans text-gray-800 bg-gradient-to-r from-white to-teal-50"
+      className="font-sans text-gray-800 bg-gradient-to-r"
     >
       <Navbar />
 
       {/* Intro Section */}
       <section className="px-6 py-20 text-center">
-        <h1 className="text-4xl font-bold text-gray-900">About DesignSync</h1>
+        <h1 className="text-4xl font-bold text-gray-900">About BoothEase</h1>
         <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
-          Where creativity meets collaboration. DesignSync is more than a design
-          tool — it's a community where clients and designers come together to
-          make fashion ideas real.
+          Where efficiency meets collaboration. Boothease is more than a booth reservation tool
+          tool — it's a community where renters and booth owners come together to
+          make booth reservation effortless.
         </p>
       </section>
 

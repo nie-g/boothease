@@ -219,7 +219,7 @@ const handleVerification = async (e: React.FormEvent) => {
 
               <p className="text-sm text-gray-500 mt-4 text-center">
                 Already have an account?{" "}
-                <a href="/sign-in" className="text-[#EB6A34] font-medium">
+                <a href="/signin" className="text-[#EB6A34] font-medium">
                   Login
                 </a>
               </p>
