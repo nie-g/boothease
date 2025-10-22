@@ -1,10 +1,10 @@
-import { Calendar, MapPin, Heart, ImageIcon } from "lucide-react";
+import { Calendar, MapPin, ImageIcon } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import EventDetailsModal from "./EventDetailsModal";
+import EventDetailsModal from "./EventDetailsModal"; // ✅ Import modal
 
 interface EventType {
   _id: Id<"events">;
@@ -14,31 +14,22 @@ interface EventType {
   startDate: string;
   endDate: string;
   location: { address?: string; lat: number; lng: number };
-  event_thumbnail?: Id<"_storage">; // storage ID
+  event_thumbnail?: Id<"_storage">;
+  booth_layout?: Id<"_storage">;
+  createdAt: number;
 }
 
-interface EventCardProps {
+interface OwnerEventCardProps {
   event: EventType;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ event }) => {
+export const EventsCard: React.FC<OwnerEventCardProps> = ({ event }) => {
   const urls = useQuery(api.getPreviewUrl.getPreviewUrls, {
     storageIds: event.event_thumbnail ? [event.event_thumbnail] : [],
   });
   const thumbnailUrl = urls?.[0];
 
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleOpen = (event: any, thumbnailUrl?: string) => {
-    setSelectedEvent({ ...event, thumbnailUrl });
-    setIsModalOpen(true);
-  };
-
-  const handleClose = () => {
-    setIsModalOpen(false);
-    setSelectedEvent(null);
-  };
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "TBA";
@@ -50,16 +41,18 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
     });
   };
 
+  // Handlers
+  const handleOpenDetails = () => setIsDetailsOpen(true);
+  const handleCloseDetails = () => setIsDetailsOpen(false);
+
   return (
     <>
+      {/* 🟢 Event Card */}
       <div className="bg-[#DEE5ED] rounded-xl shadow-sm p-4 flex flex-col justify-between hover:shadow-md transition-all">
-        {/* Title + Favorite */}
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="text-gray-800 font-semibold text-base truncate">
-            {event.title}
-          </h3>
-          <Heart className="h-5 w-5 text-gray-400 hover:text-red-500 cursor-pointer" />
-        </div>
+        {/* Title */}
+        <h3 className="text-gray-800 font-semibold text-base truncate mb-2">
+          {event.title}
+        </h3>
 
         {/* Thumbnail */}
         <div className="bg-gray-100 rounded-lg h-36 flex items-center justify-center mb-3 overflow-hidden">
@@ -78,38 +71,44 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
         </div>
 
         {/* Event Info */}
-        <div className="flex flex-col text-center mb-3">
-          <div className="text-gray-600 text-sm flex flex-col items-center mt-1">
-            <span className="flex items-center">
-              <Calendar className="h-4 w-4 mr-1" />
-              {formatDate(event.startDate)} - {formatDate(event.endDate)}
-            </span>
-            <span className="flex items-center mt-1">
-              <MapPin className="h-4 w-4 mr-1" />
-              {event.location?.address || "No venue info"}
-            </span>
-          </div>
+        <div className="text-gray-600 text-sm flex flex-col items-center mb-4">
+          <span className="flex items-center">
+            <Calendar className="h-4 w-4 mr-1" />
+            {formatDate(event.startDate)} - {formatDate(event.endDate)}
+          </span>
+          <span className="flex items-center mt-1">
+            <MapPin className="h-4 w-4 mr-1" />
+            {event.location?.address || "No venue info"}
+          </span>
         </div>
 
-        {/* View Details Button */}
-        <div className="flex justify-center mt-auto">
+        {/* Buttons */}
+        <div className="flex justify-center gap-2 mt-auto">
+          {/* ✅ View Details opens EventDetailsModal */}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => handleOpen(event)} // ✅ Trigger modal
-            className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+            onClick={handleOpenDetails}
+            className="bg-white px-2 py-2 text-xs font-bold text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
           >
             View Details
           </motion.button>
+
+        
+         
         </div>
       </div>
 
-      {/* ✅ Modal Component (below the card) */}
-      <EventDetailsModal
-        isOpen={isModalOpen}
-        onClose={handleClose}
-        event={selectedEvent}
-      />
+   
+      {isDetailsOpen && (
+        <EventDetailsModal
+          item={event}
+          isOpen={isDetailsOpen}
+          onClose={handleCloseDetails}
+        />
+      )}
     </>
   );
 };
+
+export default EventsCard;

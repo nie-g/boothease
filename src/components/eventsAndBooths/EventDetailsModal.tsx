@@ -72,7 +72,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
         })
       : "—";
 
-  const formatTime = (time?: string) => (time ? time : "—");
+
 
   return (
     <>

@@ -3,7 +3,6 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { motion } from "framer-motion";
 import { Search, FileText, ArrowUpDown, Eye } from "lucide-react";
-import { useUser } from "@clerk/clerk-react";
 import type { Id } from "../../../convex/_generated/dataModel";
 import ManageBoothStatusModal from "./ManageBoothStatusModal";
 import BoothDetailsModal from "./BoothDetailsModal";
@@ -22,7 +21,6 @@ interface BoothType {
 }
 
 const BoothsTable: React.FC = () => {
-  const { user: clerkUser } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" }>({
     key: "name",

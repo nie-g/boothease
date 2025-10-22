@@ -4,7 +4,8 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import AddBoothModal from "./AddBooth"; // ✅ Ensure this path is correct
+import AddBoothModal from "./AddBooth";
+import EventDetailsModal from "../../components/eventsAndBooths/EventDetailsModal"; // ✅ Import modal
 
 interface EventType {
   _id: Id<"events">;
@@ -15,6 +16,8 @@ interface EventType {
   endDate: string;
   location: { address?: string; lat: number; lng: number };
   event_thumbnail?: Id<"_storage">;
+  booth_layout?: Id<"_storage">;
+  createdAt: number;
 }
 
 interface OwnerEventCardProps {
@@ -27,7 +30,8 @@ export const OwnerEventCard: React.FC<OwnerEventCardProps> = ({ event }) => {
   });
   const thumbnailUrl = urls?.[0];
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddBoothModalOpen, setIsAddBoothModalOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "TBA";
@@ -39,8 +43,11 @@ export const OwnerEventCard: React.FC<OwnerEventCardProps> = ({ event }) => {
     });
   };
 
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
+  // Handlers
+  const handleOpenBoothModal = () => setIsAddBoothModalOpen(true);
+  const handleCloseBoothModal = () => setIsAddBoothModalOpen(false);
+  const handleOpenDetails = () => setIsDetailsOpen(true);
+  const handleCloseDetails = () => setIsDetailsOpen(false);
 
   return (
     <>
@@ -81,31 +88,42 @@ export const OwnerEventCard: React.FC<OwnerEventCardProps> = ({ event }) => {
 
         {/* Buttons */}
         <div className="flex justify-center gap-2 mt-auto">
+          {/* ✅ View Details opens EventDetailsModal */}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            className="bg-white px-2 py-2 text-start text-xs font-bold text-gray-700 border border-gray-300 rounded-lg transition"
+            onClick={handleOpenDetails}
+            className="bg-white px-2 py-2 text-xs font-bold text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
           >
             View Details
           </motion.button>
 
+          {/* ✅ Create Booth button */}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            onClick={handleOpenModal}
-            className="px-2 py-2 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition flex items-center gap-1"
+            onClick={handleOpenBoothModal}
+            className="px-2 py-2 text-xs font-semibold bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition flex items-center gap-1"
           >
             Create Booth
           </motion.button>
         </div>
       </div>
 
-      {/* 🟢 Pass event ID to AddBoothModal */}
+      {/* 🟢 Modals */}
       <AddBoothModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
+        isOpen={isAddBoothModalOpen}
+        onClose={handleCloseBoothModal}
         defaultEventId={event._id}
       />
+
+      {isDetailsOpen && (
+        <EventDetailsModal
+          item={event}
+          isOpen={isDetailsOpen}
+          onClose={handleCloseDetails}
+        />
+      )}
     </>
   );
 };

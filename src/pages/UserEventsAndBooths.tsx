@@ -4,12 +4,14 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 // Components
-import TestNavbar from "../components/TestNavbar";
+import Navbar from "../components/UsersNavbar";
 import Sidebar from "../components/Sidebar";
-import { EventCard } from "../components/userEventsAndBooths/EventsCard";
+import  EventCard  from "../components/userEventsAndBooths/EventsCard";
 import { BoothCard } from "../components/userEventsAndBooths/BoothsCard";
 import { Calendar, LayoutGrid } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
+import BoothDetailsModal from "../components/userEventsAndBooths/BoothDetailsModal"; // ✅ import modal
+
 
 
 export interface BoothType {
@@ -22,6 +24,7 @@ export interface BoothType {
   availability_status: "available" | "reserved" | "unavailable";
   eventId: Id<"events">;
   thumbnail?: Id<"_storage">; // strictly _storage ID
+  createdAt: number;
 }
 
 
@@ -34,10 +37,13 @@ interface EventType {
   endDate: string;
   location: { address?: string; lat: number; lng: number };
   event_thumbnail?: Id<"_storage">;
+  createdAt: number;
 }
 
 
 const UserEventsAndBooths: React.FC = () => {
+  const [selectedBooth, setSelectedBooth] = useState<BoothType | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"events" | "booths">("events");
   const [searchTerm, setSearchTerm] = useState("");
    const { user } = useUser(); 
@@ -71,16 +77,25 @@ const UserEventsAndBooths: React.FC = () => {
 
   return (
     <div className="w-screen h-screen flex flex-col bg-white overflow-hidden">
-        {/* Navbar */}
-        <div className="w-full flex-none h-[13vh]">
-            <TestNavbar />
-        </div>
+       {/* Navbar */}
+     <div className="w-full flex-none h-[8vh] md:h-[13vh]">
+           <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+         </div>
+     
+           <div className="flex flex-1 overflow-hidden">
+             {/* Sidebar */}
+            <aside
+             className={`
+               fixed top-0 left-0 h-full z-50 w-64 bg-[#E7EBEE] border-r border-gray-200
+               transform transition-transform duration-300 ease-in-out
+               ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+               md:translate-x-0 md:static md:w-64
+             `}
+           >
+             <Sidebar setSidebarOpen={setSidebarOpen} />
+           </aside>
 
-        {/* Main Section */}
-        <div className="flex flex-1 overflow-hidden">
-            <aside className="w-1/6 min-w-[220px] bg-slate-100 overflow-y-auto border-r border-gray-200">
-            <Sidebar />
-            </aside>
+
             <main className="flex-1 bg-white overflow-y-auto p-4 md:p-6">
              {/* Tabs + Search Container */}
             <motion.div
@@ -135,14 +150,28 @@ const UserEventsAndBooths: React.FC = () => {
             >
                 {activeTab === "events"
                 ? filteredEvents.map((event) => (
-                    <EventCard key={event._id} event={event}  />
-                    ))
+                    <EventCard key={event._id} event={event} />
+                  ))
                 : filteredBooths.map((booth) => (
-                    <BoothCard key={booth._id} booth={booth} renterId={currentUser?._id as any} />
-                    ))}
+                    <BoothCard
+                      key={booth._id}
+                      booth={booth}
+                      renterId={currentUser?._id as any}
+                      onSeeDetails={() => setSelectedBooth(booth)} // ✅ pass required prop
+                    />
+                  ))}
+
             </motion.div>
-            
+            {/* ✅ Booth Details Modal */}
+              {selectedBooth && (
+                <BoothDetailsModal
+                  isOpen={!!selectedBooth}
+                  onClose={() => setSelectedBooth(null)}
+                  booth={selectedBooth}
+                />
+              )}
             </main>
+
         </div>
         </div>
 

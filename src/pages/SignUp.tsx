@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useSignUp } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 
@@ -21,7 +21,6 @@ const SignUp = () => {
   const [error, setError] = useState("");
 
   // 🔑 persist signup attempt ID across renders
-  const signUpIdRef = useRef<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });

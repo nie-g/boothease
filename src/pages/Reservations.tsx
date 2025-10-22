@@ -1,16 +1,15 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
-import ClientNavbar from "../components/UsersNavbar";
-import DynamicSidebar from "../components/DynamicSidebar";
+import Navbar from "../components/UsersNavbar";
+import Sidebar from "../components/Sidebar";
 
 
 const RenterDashboard: React.FC = () => {
-  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user: clerkUser } = useUser();
 
   const currentUser = useQuery(
@@ -31,14 +30,22 @@ const RenterDashboard: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FFF9E9]">
-      {/* Navbar always on top */}
-      <ClientNavbar />
+     <div className="w-full flex-none h-[8vh] md:h-[13vh]">
+      <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+    </div>
 
-      {/* Main section with sidebar + content */}
-      <div className="flex flex-1">
-        {/* Sidebar on the left */}
-        <DynamicSidebar />
-
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+       <aside
+        className={`
+          fixed top-0 left-0 h-full z-50 w-64 bg-[#E7EBEE] border-r border-gray-200
+          transform transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0 md:static md:w-64
+        `}
+      >
+        <Sidebar setSidebarOpen={setSidebarOpen} />
+      </aside>
         {/* Content area */}
         <main className="flex-1 p-6 md:p-8 flex flex-col gap-6 overflow-auto">
           <motion.div

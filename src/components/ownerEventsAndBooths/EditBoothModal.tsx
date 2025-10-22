@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useMutation, useAction, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { X, Upload, ImageIcon } from "lucide-react";
+import { X, Upload } from "lucide-react";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { useUser } from "@clerk/clerk-react";
 import toast from "react-hot-toast";

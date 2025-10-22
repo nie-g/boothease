@@ -8,8 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { Save, Settings } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import Sidebar from "../Sidebar";
-import Navbar from "../UsersNavbar";
+
 
 type BusinessProfileType = {
   _id: Id<"business_profiles">;
@@ -122,7 +121,7 @@ const BusinessProfile: React.FC = () => {
             <h1 className="text-2xl font-bold mb-6 text-gray-600">Business Profile</h1>
 
             {/* User Info */}
-            <div className="p-4 bg-white rounded-2xl shadow-md border border-gray-200 flex flex-col md:flex-row items-start md:items-center gap-4">
+            <div className="p-4 bg-white rounded-lg shadow-md border border-gray-200 flex flex-col md:flex-row items-start md:items-center gap-4">
               <div>
                 <p className="text-gray-600 text-sm">{currentUser.email}</p>
                 <h2 className="text-lg font-semibold text-gray-900">
@@ -139,7 +138,7 @@ const BusinessProfile: React.FC = () => {
             </div>
 
             {/* Business Info */}
-            <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
               <div className="mb-6 border-b border-gray-200 pb-3">
                 <h2 className="text-xl font-semibold text-gray-600">Business Information</h2>
               </div>

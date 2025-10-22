@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { motion } from "framer-motion";
-import { Search, Eye, XCircle, Filter } from "lucide-react";
+import { Eye, XCircle, Filter } from "lucide-react";
 import type { Id } from "../../../convex/_generated/dataModel";
 import BoothDetailsModal from "./BoothDetailsModal";
 import toast from "react-hot-toast";
@@ -25,7 +25,7 @@ const BoothsPage: React.FC = () => {
   const events = useQuery(api.events.listAllEvents) ?? [];
   const cancelBooth = useMutation(api.booths.cancelBooth);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, _setSearchTerm] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedAvailability, setSelectedAvailability] =

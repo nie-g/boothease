@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useClerk, useUser } from "@clerk/clerk-react";
+import { Link } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 import {
-  Home, Clock, Settings, LogOut, BookUser, Palette, Images, Bell as BellIcon, Users, FileText, BarChart, Layers, Box, NotebookPenIcon
+  Home, Palette, Images, Bell as BellIcon, Users, CircleUser, NotebookPenIcon, X
 } from "lucide-react";
 import logoIcon from "../assets/BoothEaseLogo.png";
 import { useUnreadNotificationCount } from "../hooks/UnreadNotificationsCount";
@@ -15,52 +15,33 @@ interface NavItem {
   icon: React.ReactNode;
   route: string;
 }
+interface SidebarProps {
+  setSidebarOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-const Sidebar: React.FC = () => {
+const Sidebar: React.FC<SidebarProps> = ({ setSidebarOpen }) => {
+
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
-  const { signOut } = useClerk();
   const { user } = useUser();
-  const navigate = useNavigate();
-
   const { unreadCount } = useUnreadNotificationCount();
 
-  // ✅ Get userType from Clerk metadata (fallback client)
   const userType: UserType =
     (user?.unsafeMetadata?.userType as UserType) || "renter";
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsSmallScreen(window.innerWidth < 768);
-    };
+    const handleResize = () => setIsSmallScreen(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      navigate("/");
-    } catch (error) {
-      console.error("Logout failed:", (error as Error).message);
-    }
-  };
-
-  // ✅ Theme colors with safe Tailwind classes
-  const getThemeColor = () => {
-    switch (userType) {
-      case "admin":
-        return { text: "text-[#486284]", hover: "hover:bg-gray-300" };
-      case "owner":
-        return { text: "text-[#486284]", hover: "hover:bg-gray-300" };
-      case "renter":
-      default:
-        return { text: "text-[#486284]", hover: "hover:bg-gray-300" };
-    }
-  };
+  
+  const getThemeColor = () => ({
+    text: "text-gray-50",
+    hover: "hover:bg-gray-300",
+  });
 
   const { text, hover } = getThemeColor();
 
-  // ✅ Navigation by role
   const getNavItems = (): NavItem[] => {
     switch (userType) {
       case "admin":
@@ -69,23 +50,23 @@ const Sidebar: React.FC = () => {
           { name: "Users", icon: <Users />, route: "/admin/users" },
           { name: "Events & Booths", icon: <Palette />, route: "/admin/events" },
           { name: "Notifications", icon: <BellIcon />, route: "/notifications" },
-         
         ];
       case "owner":
         return [
           { name: "Dashboard", icon: <Home />, route: "/owner" },
-          { name: "Business Profile", icon: <Home />, route: "/owner/businessprofile" },
+          { name: "Business Profile", icon: <CircleUser />, route: "/owner/businessprofile" },
           { name: "Events & Booths", icon: <NotebookPenIcon />, route: "/owner/events" },
           { name: "Reservations", icon: <Images />, route: "/owner/reservations" },
-          { name: "Notifications", icon: <BellIcon />, route: "/notifications" },     
+          { name: "Notifications", icon: <BellIcon />, route: "/notifications" },
         ];
       case "renter":
       default:
         return [
-         { name: "Dashboard", icon: <Home />, route: "/renter" },
-         { name: "Business Profile", icon: <BookUser />, route: "/renter/businessprofile" },
-         { name: "Events & Booths", icon: <NotebookPenIcon />, route: "/renter/events" },
-         { name: "Reservations", icon: <Images />, route: "/renter/reservations" },
+          { name: "Dashboard", icon: <Home />, route: "/renter" },
+          { name: "Business Profile", icon: <CircleUser />, route: "/renter/businessprofile" },
+          { name: "Events & Booths", icon: <NotebookPenIcon />, route: "/renter/events" },
+          { name: "Reservations", icon: <Images />, route: "/renter/reservations" },
+          { name: "Notifications", icon: <BellIcon />, route: "/notifications" },
         ];
     }
   };
@@ -93,39 +74,53 @@ const Sidebar: React.FC = () => {
   const navItems = getNavItems();
 
   return (
-   <aside
-    className={`bg-[#E7EBEE] text-[#486284] font-semibold transition-all duration-300 ease-in-out ${
-      isSmallScreen ? "w-full" : "w-full"
-    } flex flex-col h-full  min-h-full overflow-y-auto`}
-  >
+    <aside className="flex flex-col h-full overflow-y-auto bg-gray-800 text-gray-50 ">
+      {/* Logo + Close Button */}
+      <div className="flex items-center justify-between p-4 md:hidden">
+          {/* Logo + text */}
+          <div className="flex items-center space-x-2">
+            <img src={logoIcon} alt="BoothEase Logo" className="h-10" />
+            <span className="text-lg font-bold text-[#486284]">BoothEase</span>
+          </div>
 
-    {/* Scrollable nav */}
-    <nav className="flex-1 mt-4 space-y-1 overflow-y-auto">
-      {navItems.map((item) => (
-        <Link key={item.name} to={item.route} className={`flex items-center p-4 rounded-lg space-x-3 ${hover}`}>
-          <span className={`${text} relative`}>
-            {item.icon}
-            {item.name === "Notifications" && unreadCount > 0 && (
-              <NotificationBadge count={unreadCount} size="sm" color="red" className="animate-pulse" />
-            )}
-          </span>
+          {/* X button only on mobile */}
+          {isSmallScreen && setSidebarOpen && (
+            <button
+              aria-label="Close Sidebar"
+              onClick={() => setSidebarOpen(false)}
+              className="ml-2 p-1 rounded-md hover:bg-gray-300"
+            >
+              <X size={24} />
+            </button>
+          )}
+        </div>
 
-          {!isSmallScreen && (
-            <span className="flex items-center">
-              {item.name}
+
+      {/* Navigation Items */}
+      <nav className="flex-1 mt-4 space-y-1">
+        {navItems.map((item) => (
+          <Link
+            key={item.name}
+            to={item.route}
+            onClick={() => setSidebarOpen?.(false)}
+            className={`flex items-center p-4 rounded-lg space-x-3 ${hover}`}
+          >
+            <span className={`${text} relative`}>
+              {item.icon}
               {item.name === "Notifications" && unreadCount > 0 && (
-                <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full min-w-[20px] text-center">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
+                <NotificationBadge
+                  count={unreadCount}
+                  size="sm"
+                  color="red"
+                  className="animate-pulse"
+                />
               )}
             </span>
-          )}
-        </Link>
-      ))}
-    </nav>
+            <span>{item.name}</span>
+          </Link>
+        ))}
+      </nav>
     </aside>
-
-
   );
 };
 

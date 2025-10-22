@@ -52,6 +52,8 @@ business_profiles: defineTable({
 /*....................business documents...................*/
 businessDocuments: defineTable({
   userId: v.id("users"),
+  businessProfileId: v.id("business_profiles"),
+  title: v.string(),
   type: v.union(
     v.literal("permit"),
     v.literal("license"),
@@ -59,10 +61,10 @@ businessDocuments: defineTable({
     v.literal("contract"),
     v.literal("other")
   ),
-  fileUrl: v.id("_storage"),
+   files: v.array(v.id("_storage")), // ✅ allow multiple uploaded files
   status: v.union(
     v.literal("pending"),
-    v.literal("approved"),
+    v.literal("verified"),
     v.literal("rejected")
   ),
   uploadedAt: v.number(),
@@ -143,11 +145,6 @@ reservations: defineTable({
   // 🕒 Optional time-based booking (only used for hourly rentals)
   // 💰 Pricing & Payment
   totalPrice: v.number(),
-  paymentStatus: v.union(
-    v.literal("unpaid"),
-    v.literal("paid"),
-    v.literal("refunded")
-  ),
 
   createdAt: v.number(),
   updatedAt: v.optional(v.number()),
@@ -160,9 +157,12 @@ reservations: defineTable({
 /*....................payments...................*/
 billing: defineTable({
   reservationId: v.id("reservations"),
+  clientId: v.id("users"),      // renter/user who booked
+  numberOfDays: v.number(),     // total days of the reservation
   amount: v.number(),
-  transactionDate: v.string(), // ISO format
-}).index("by_reservation", ["reservationId"]),
+  transactionDate: v.string(),  // ISO format
+}).index("by_reservation", ["reservationId"])
+  .index("by_client", ["clientId"]),
 
 
 /*....................notifications...................*/

@@ -1,4 +1,4 @@
-import { internalMutation, query } from "./_generated/server";
+import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 
@@ -69,6 +69,35 @@ export const storeClerkUser = internalMutation({
           createdAt: Date.now(),
         });
       }
+
+    }
+     if (args.role === "renter") {
+      // Check if this user already has a business profile
+      const existingProfile = await ctx.db
+        .query("business_profiles")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .unique();
+
+      // Create new business profile if none exists
+      if (!existingProfile) {
+        await ctx.db.insert("business_profiles", {
+          userId: userId,
+          businessName: "",
+          category: "",
+          description: "",
+          email: args.email, // you can prefill from users table if needed
+          phone: "",
+          website: "",
+          social_links: [],
+          address: "",
+          city: "",
+          province: "",
+          postalCode: "",
+          country: "Philippines",
+          createdAt: Date.now(),
+        });
+      }
+      
     }
 
 

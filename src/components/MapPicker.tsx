@@ -5,7 +5,7 @@ import {
   Marker,
   useMapEvents,
 } from "react-leaflet";
-import type { LeafletMouseEvent, LatLngExpression } from "leaflet";
+import type { LatLngExpression } from "leaflet";
 import L from "leaflet";
 
 

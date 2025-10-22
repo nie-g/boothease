@@ -14,11 +14,12 @@ import Users from './pages/Users';
 import Events from './pages/EventsAndBooths';
 import UserEvents from './pages/UserEventsAndBooths';
 import UserReservations from './pages/UserReservations';
+import OwnerReservations from './pages/OwnerReservations';
 import OwnerEvents from './pages/OwnerEventsAndBooths';
 import Register from './pages/Register';
-import Test from './pages/TestDashboard';
 import RegisterOwner from './pages/RegisterOwner';
 import RegisterAdmin from './pages/RegisterAdmin';
+import Notifications from './pages/Notifications';
 import { Toaster } from "react-hot-toast";
 
 
@@ -43,14 +44,15 @@ function App() {
         <Route path="/owner" element={<OwnerDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/renter/BusinessProfile" element={<Profile />} />
         <Route path="/owner/BusinessProfile" element={<Profile />} />
+        <Route path="/renter/BusinessProfile" element={<Profile />} />
         <Route path="/admin/users" element={<Users />} />
         <Route path="/admin/events" element={<Events />} />
         <Route path="owner/events" element={<OwnerEvents />} />
         <Route path="/renter/events" element={<UserEvents />} />
         <Route path="/renter/reservations" element={<UserReservations />} />
-
+        <Route path="/owner/reservations" element={<OwnerReservations />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Routes>
     </BrowserRouter>
   )

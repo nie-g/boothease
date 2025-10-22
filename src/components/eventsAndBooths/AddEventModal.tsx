@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useAction, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { X, Upload, Trash2, ImageIcon } from "lucide-react";
+import { X, Upload, ImageIcon } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import MapPicker from "../MapPicker";
 

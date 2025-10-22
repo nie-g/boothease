@@ -1,10 +1,10 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import Sidebar from "../components/Sidebar";
-import TestNavbar from "../components/TestNavbar";
+import Navbar from "../components/UsersNavbar";
 import SummaryCards from "./renterDashboard/SummaryCards";
 import ChartsSection from "./renterDashboard/ChartsSection";
 import DataSections from "./renterDashboard/DataSection";
@@ -13,6 +13,7 @@ import HeaderSection from "./renterDashboard/HeaderSection";
 
 const UserDashboard: React.FC = () => {
   const { user } = useUser();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const dbUser = useQuery(
     api.userQueries.getUserByClerkId,
@@ -57,15 +58,23 @@ const UserDashboard: React.FC = () => {
   return (
     <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-[#ebeff5] overflow-hidden">
       {/* Navbar */}
-      <div className="w-full flex-none h-[13vh]">
-        <TestNavbar />
-      </div>
+    <div className="w-full flex-none h-[8vh] md:h-[13vh]">
+      <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+    </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <aside className="w-1/6 min-w-[220px] bg-white/60 backdrop-blur-sm border-r border-gray-200">
-          <Sidebar />
-        </aside>
+       <aside
+        className={`
+          fixed top-0 left-0 h-full z-50 w-64 bg-[#E7EBEE] border-r border-gray-200
+          transform transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0 md:static md:w-64
+        `}
+      >
+        <Sidebar setSidebarOpen={setSidebarOpen} />
+      </aside>
+
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6 md:p-10 space-y-10">

@@ -1,6 +1,8 @@
-import { query, mutation, MutationCtx } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
+import dayjs from "dayjs";
 /* =====================
    📋 QUERY
 ===================== */
@@ -8,6 +10,13 @@ export const listAllReservations = query({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("reservations").collect();
+  },
+});
+
+export const getById = query({
+  args: { reservationId: v.id("reservations") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.reservationId);
   },
 });
 
@@ -23,6 +32,35 @@ export const getUserReservations = query({
   },
 });
 
+
+export const getOwnerReservations = query({
+  args: { ownerId: v.id("users") },
+  handler: async (ctx, { ownerId }) => {
+    // Step 1: Fetch all booths for this owner
+    const booths = await ctx.db
+      .query("booths")
+      .filter((q) => q.eq(q.field("ownerId"), ownerId))
+      .collect();
+
+    const boothIds = booths.map((b) => b._id);
+    if (boothIds.length === 0) return [];
+
+    // Step 2: Fetch all reservations for all booths in parallel
+    const reservationsArrays = await Promise.all(
+      boothIds.map((boothId) =>
+        ctx.db
+          .query("reservations")
+          .filter((q) => q.eq(q.field("boothId"), boothId))
+          .collect()
+      )
+    );
+
+    // Flatten the arrays into a single array
+    const reservations = reservationsArrays.flat();
+
+    return reservations;
+  },
+});
 
 
 export const getByRenter = query({
@@ -42,7 +80,6 @@ export const getByRenter = query({
     );
   },
 });
-
 export const createReservation = mutation({
   args: {
     boothId: v.id("booths"),
@@ -87,12 +124,22 @@ export const createReservation = mutation({
       endDate: args.endDate,
       totalPrice: args.totalPrice,
       status: "pending",
-      paymentStatus: "unpaid",
       createdAt: Date.now(),
     });
 
     // Step 5️⃣: Update booth availability
     await updateBoothAvailability(ctx, args.boothId);
+
+    // Step 6️⃣: Notify the owner
+    if (booth.ownerId) {
+      await ctx.db.insert("notifications", {
+        recipient_user_id: booth.ownerId,
+        recipient_user_type: "owner",
+        notif_content: `New reservation created for your booth "${booth.name}" from ${args.startDate} to ${args.endDate}.`,
+        created_at: Date.now(),
+        is_read: false,
+      });
+    }
 
     return reservationId;
   },
@@ -106,11 +153,26 @@ export const cancelReservation = mutation({
     const reservation = await ctx.db.get(reservationId);
     if (!reservation) throw new Error("Reservation not found");
 
+    const booth = await ctx.db.get(reservation.boothId);
+    if (!booth) throw new Error("Booth not found");
+
     // Cancel the reservation
     await ctx.db.patch(reservationId, { status: "cancelled" });
 
     // Recalculate booth availability
     await updateBoothAvailability(ctx, reservation.boothId);
+
+
+    // Notify the owner
+    if (booth.ownerId) {
+      await ctx.db.insert("notifications", {
+        recipient_user_id: booth.ownerId,
+        recipient_user_type: "owner",
+        notif_content: `Reservation for your booth "${booth.name}" from ${reservation.startDate} to ${reservation.endDate} has been cancelled.`,
+        created_at: Date.now(),
+        is_read: false,
+      });
+    }
 
     return true;
   },
@@ -122,30 +184,42 @@ async function updateBoothAvailability(ctx: MutationCtx, boothId: Id<"booths">) 
   const booth = await ctx.db.get(boothId);
   if (!booth) return;
 
+  // Skip if manually set to unavailable (e.g. maintenance)
+  if (booth.availability_status === "unavailable") return;
+
   const event = booth.eventId ? await ctx.db.get(booth.eventId) : null;
   if (!event) return;
 
-  const reservations = await ctx.db
+  // Get all approved reservations for this booth
+  const approvedReservations = await ctx.db
     .query("reservations")
-    .filter((q: any) => q.eq(q.field("boothId"), boothId))
+    .filter((q) =>
+      q.and(q.eq(q.field("boothId"), boothId), q.eq(q.field("status"), "approved"))
+    )
     .collect();
 
-  // Convert event and reservation dates to day lists
   const eventDays = getDaysBetween(event.startDate, event.endDate);
   const reservedDays = new Set<string>();
 
-  reservations.forEach((r: any) => {
-    if (r.status === "cancelled" || r.status === "rejected") return;
+  // Collect all reserved days from approved reservations
+  approvedReservations.forEach((r) => {
     const days = getDaysBetween(r.startDate, r.endDate);
-    days.forEach(d => reservedDays.add(d));
+    days.forEach((d) => reservedDays.add(d));
   });
 
-  const allReserved = eventDays.every(day => reservedDays.has(day));
-  const partiallyReserved = reservedDays.size > 0 && !allReserved;
+  // Determine booth status
+  const allReserved = eventDays.every((d) => reservedDays.has(d));
+  const anyReserved = reservedDays.size > 0;
 
   let newStatus: "available" | "reserved" | "unavailable" = "available";
-  if (allReserved) newStatus = "unavailable";
-  else if (partiallyReserved) newStatus = "reserved";
+
+  if (allReserved) {
+    newStatus = "reserved"; // fully booked
+  } else if (anyReserved) {
+    newStatus = "available"; // partially booked → still has open days
+  } else {
+    newStatus = "available"; // no bookings yet
+  }
 
   await ctx.db.patch(boothId, { availability_status: newStatus });
 }
@@ -176,9 +250,54 @@ export const updateStatus = mutation({
     ),
   },
   handler: async (ctx, { reservationId, status }) => {
+    const reservation = await ctx.db.get(reservationId);
+    if (!reservation) throw new Error("Reservation not found");
+
+    // 1️⃣ Update the reservation status
     await ctx.db.patch(reservationId, {
       status,
       updatedAt: Date.now(),
     });
+
+    // 2️⃣ Prepare notification content
+    let notifContent = "";
+
+    if (status === "approved") {
+      // Calculate number of days
+      const start = dayjs(reservation.startDate);
+      const end = dayjs(reservation.endDate);
+      const numberOfDays = end.diff(start, "day") + 1;
+
+      // Create billing record
+      await ctx.db.insert("billing", {
+        reservationId,
+        clientId: reservation.renterId,
+        numberOfDays,
+        amount: reservation.totalPrice,
+        transactionDate: new Date().toISOString(),
+      });
+
+      notifContent = `Your reservation for booth ${reservation.boothId} has been approved. A billing has been created for ₱${reservation.totalPrice.toLocaleString()}.`;
+
+      // Update booth availability
+      await updateBoothAvailability(ctx, reservation.boothId);
+    } else if (status === "declined") {
+      notifContent = `Your reservation for booth ${reservation.boothId} has been declined.`;
+    } else if (status === "cancelled") {
+      notifContent = `Your reservation for booth ${reservation.boothId} has been cancelled.`;
+    }
+
+    // 3️⃣ Send notification
+    if (notifContent) {
+      await ctx.db.insert("notifications", {
+        recipient_user_id: reservation.renterId,
+        recipient_user_type: "renter",
+        notif_content: notifContent,
+        created_at: Date.now(),
+        is_read: false,
+      });
+    }
+
+    return true;
   },
 });

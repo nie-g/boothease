@@ -16,6 +16,7 @@ import type {
 import type * as booth_images from "../booth_images.js";
 import type * as booths from "../booths.js";
 import type * as businessProfiles from "../businessProfiles.js";
+import type * as business_documents from "../business_documents.js";
 import type * as event_images from "../event_images.js";
 import type * as event_likes from "../event_likes.js";
 import type * as events from "../events.js";
@@ -40,6 +41,7 @@ declare const fullApi: ApiFromModules<{
   booth_images: typeof booth_images;
   booths: typeof booths;
   businessProfiles: typeof businessProfiles;
+  business_documents: typeof business_documents;
   event_images: typeof event_images;
   event_likes: typeof event_likes;
   events: typeof events;
