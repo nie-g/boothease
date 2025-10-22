@@ -20,6 +20,7 @@ import Register from './pages/Register';
 import RegisterOwner from './pages/RegisterOwner';
 import RegisterAdmin from './pages/RegisterAdmin';
 import Notifications from './pages/Notifications';
+import { AuthenticateWithRedirectCallback } from "@clerk/clerk-react";
 import { Toaster } from "react-hot-toast";
 
 
@@ -33,6 +34,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/sso-callback" element={<AuthenticateWithRedirectCallback />} />
         <Route path="/register/owner" element={<RegisterOwner />} />
         <Route path="/register/admin" element={<RegisterAdmin />} />
         <Route path="/home" element={<Home />} />
