@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import cutie from "../assets/BoothEaseLogo.png";
 const Navbar = () => {
 
+  
 
   return (
     <nav className="flex justify-between items-center p-4 px-12  border border-gray-900">

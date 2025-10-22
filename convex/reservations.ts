@@ -273,6 +273,7 @@ export const updateStatus = mutation({
         reservationId,
         clientId: reservation.renterId,
         numberOfDays,
+        paymentStatus: "pending",
         amount: reservation.totalPrice,
         transactionDate: new Date().toISOString(),
       });
@@ -299,5 +300,50 @@ export const updateStatus = mutation({
     }
 
     return true;
+  },
+});
+export const getOwnerBoothReservations = query({
+  args: { ownerId: v.id("users") },
+  handler: async (ctx, args) => {
+    // 1️⃣ Get all booths owned by this owner
+    const booths = await ctx.db
+      .query("booths")
+      .filter((q) => q.eq(q.field("ownerId"), args.ownerId))
+      .collect();
+
+    if (booths.length === 0) return [];
+
+    // 2️⃣ Gather all reservations for those booths
+    const reservations = await Promise.all(
+      booths.map(async (booth) => {
+        const boothReservations = await ctx.db
+          .query("reservations")
+          .filter((q) => q.eq(q.field("boothId"), booth._id))
+          .collect();
+
+        // 3️⃣ For each reservation, attach booth + event + renter info
+        return Promise.all(
+          boothReservations.map(async (reservation) => {
+            // Fetch related event and renter
+            const event = booth.eventId ? await ctx.db.get(booth.eventId) : null;
+            const renter = reservation.renterId
+              ? await ctx.db.get(reservation.renterId)
+              : null;
+
+            return {
+              ...reservation,
+              boothName: booth.name || "Unnamed Booth",
+              eventName: event?.title || "Unknown Event",
+              renterName: renter
+                ? `${renter.firstName} ${renter.lastName}`
+                : "Unknown Renter",
+            };
+          })
+        );
+      })
+    );
+
+    // 4️⃣ Flatten results
+    return reservations.flat();
   },
 });

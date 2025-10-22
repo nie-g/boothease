@@ -37,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ setSidebarOpen }) => {
   
   const getThemeColor = () => ({
     text: "text-gray-50",
-    hover: "hover:bg-gray-300",
+    hover: "hover:bg-gray-500",
   });
 
   const { text, hover } = getThemeColor();
@@ -50,6 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({ setSidebarOpen }) => {
           { name: "Users", icon: <Users />, route: "/admin/users" },
           { name: "Events & Booths", icon: <Palette />, route: "/admin/events" },
           { name: "Notifications", icon: <BellIcon />, route: "/notifications" },
+          { name: "Manage Business Documents", icon: <NotebookPenIcon />, route: "/admin/managebusinessdocuments" },
         ];
       case "owner":
         return [
@@ -80,7 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({ setSidebarOpen }) => {
           {/* Logo + text */}
           <div className="flex items-center space-x-2">
             <img src={logoIcon} alt="BoothEase Logo" className="h-10" />
-            <span className="text-lg font-bold text-[#486284]">BoothEase</span>
+            <span className="text-lg font-bold text-orange-200">BoothEase</span>
           </div>
 
           {/* X button only on mobile */}

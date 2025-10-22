@@ -46,6 +46,31 @@ export const createBooth = mutation({
       ...args,
       createdAt: Date.now(),
     });
+
+    // 📢 Notify all admins about the new booth creation
+    try {
+      const admins = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("role"), "admin"))
+        .collect();
+
+      const owner = await ctx.db.get(args.ownerId);
+      const ownerName = owner ? `${owner.firstName} ${owner.lastName}` : "Unknown Owner";
+
+      for (const admin of admins) {
+        await ctx.db.insert("notifications", {
+          recipient_user_id: admin._id,
+          recipient_user_type: "admin",
+          notif_content: `New booth "${args.name}" created by ${ownerName}. Status: Pending Review. Location: ${args.location}`,
+          created_at: Date.now(),
+          is_read: false,
+        });
+      }
+    } catch (error) {
+      console.error("Error notifying admins about new booth:", error);
+      // Don't throw error - booth creation should succeed even if notification fails
+    }
+
     return boothId;
   },
 });

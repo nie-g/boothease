@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { X } from "lucide-react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 
@@ -49,12 +49,55 @@ const BillingModal: React.FC<BillingModalProps> = ({
     renterId ? { renterId } : "skip"
   );
   const [selectedBilling, setSelectedBilling] = useState<Billing | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Mutation to update billing status
+  const updateBillingStatus = useMutation(api.billing.updateBillingStatus);
 
   useEffect(() => {
     if (billings && billings.length > 0) {
       setSelectedBilling(billings[0] as Billing);
     }
   }, [billings]);
+
+  const handleStatusUpdate = async (newStatus: "paid" | "refunded") => {
+    if (!selectedBilling) return;
+
+    try {
+      setIsUpdating(true);
+      setUpdateMessage(null);
+
+      await updateBillingStatus({
+        billingId: selectedBilling._id as Id<"billing">,
+        paymentStatus: newStatus,
+        transactionDate: new Date().toISOString(),
+      });
+
+      // Update local state
+      setSelectedBilling({
+        ...selectedBilling,
+        paymentStatus: newStatus,
+        transactionDate: new Date().toISOString(),
+      });
+
+      setUpdateMessage({
+        type: "success",
+        text: `Billing status updated to ${newStatus.toUpperCase()}`,
+      });
+
+      // Clear message after 3 seconds
+      setTimeout(() => setUpdateMessage(null), 3000);
+    } catch (error) {
+      console.error("Error updating billing status:", error);
+      setUpdateMessage({
+        type: "error",
+        text: "Failed to update billing status. Please try again.",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   if (!isOpen || !selectedBilling) return null;
 
@@ -169,12 +212,47 @@ const BillingModal: React.FC<BillingModalProps> = ({
           </div>
         </div>
 
+        {/* Status Update Message */}
+        {updateMessage && (
+          <div
+            className={`mb-4 p-3 rounded-lg text-sm font-medium ${
+              updateMessage.type === "success"
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
+            {updateMessage.text}
+          </div>
+        )}
+
         {/* Footer */}
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="flex justify-between gap-3 mt-6">
+          <div className="flex gap-2">
+            {paymentStatus !== "paid" && (
+              <button
+                type="button"
+                onClick={() => handleStatusUpdate("paid")}
+                disabled={isUpdating}
+                className="px-4 py-2 rounded-lg bg-teal-500 text-white hover:bg-teal-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition inline-flex items-center gap-2"
+              >
+                Mark as Paid
+              </button>
+            )}
+            {paymentStatus !== "refunded" && (
+              <button
+                type="button"
+                onClick={() => handleStatusUpdate("refunded")}
+                disabled={isUpdating}
+                className="px-4 py-2 rounded-lg bg-red-400 text-white hover:bg-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+              >
+                Refund
+              </button>
+            )}
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 rounded-lg bg-teal-500 text-white hover:bg-teal-600 transition"
+            className="px-5 py-2 rounded-lg bg-gray-500 text-white hover:bg-gray-600 transition"
           >
             Close
           </button>

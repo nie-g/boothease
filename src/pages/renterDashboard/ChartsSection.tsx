@@ -1,72 +1,100 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { Line } from "react-chartjs-2";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
   Tooltip,
-  ResponsiveContainer,
-  PieChart as PieChartComp,
-  Pie,
-  Cell,
-} from "recharts";
-import { BarChart3, PieChart } from "lucide-react";
+  Legend,
+  Filler,
+} from "chart.js";
+import { CalendarDays } from "lucide-react";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 interface ChartsSectionProps {
-  chartData: any[];
-  reservations: any[];
+  chartData: { date: string; userId: string; bookings: number }[];
+  currentUserId: string;
 }
 
-const COLORS = ["#60a5fa", "#a78bfa", "#34d399", "#fbbf24"];
+const ChartsSection: React.FC<ChartsSectionProps> = ({ chartData, currentUserId }) => {
+  // Filter chart data for current user
+  const userChartData = useMemo(
+    () => chartData.filter((d) => d.userId === currentUserId),
+    [chartData, currentUserId]
+  );
 
-const ChartsSection: React.FC<ChartsSectionProps> = ({ chartData, reservations }) => (
-  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-    {/* Line Chart */}
-    <div className="bg-white rounded-xl shadow-sm p-5 col-span-2">
-      <h2 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-        <BarChart3 className="text-blue-500" size={18} /> Bookings Trend
-      </h2>
-      <ResponsiveContainer width="100%" height={220}>
-        <LineChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip />
-          <Line type="monotone" dataKey="bookings" stroke="#6366f1" strokeWidth={2} />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+  // Calculate total bookings for this period
+  const totalBookings = userChartData.reduce((acc, curr) => acc + curr.bookings, 0);
 
-    {/* Pie Chart */}
+  const lineData = {
+    labels: userChartData.map((d) => d.date),
+    datasets: [
+      {
+        label: "Bookings",
+        data: userChartData.map((d) => d.bookings),
+        borderColor: "#10b981", // emerald-500
+        backgroundColor: "rgba(16,185,129,0.1)",
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: "#10b981",
+        pointRadius: userChartData.map((d) => (d.bookings > 0 ? 5 : 0)),
+        pointHoverRadius: 6,
+      },
+    ],
+  };
+
+  const lineOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        mode: "index" as const,
+        intersect: false,
+        callbacks: {
+          label: (ctx: any) => `${ctx.raw} booking${ctx.raw !== 1 ? "s" : ""}`,
+        },
+      },
+    },
+    scales: {
+      x: { 
+        grid: { display: false }, 
+        ticks: { color: "#9ca3af" } 
+      },
+      y: { 
+        beginAtZero: true, 
+        grid: { color: "#e5e7eb" }, 
+        ticks: { color: "#9ca3af", callback: (val: any) => `${val}` } 
+      },
+    },
+  };
+
+  return (
     <div className="bg-white rounded-xl shadow-sm p-5">
-      <h2 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-        <PieChart className="text-purple-500" size={18} /> Booking Status
-      </h2>
-      <ResponsiveContainer width="100%" height={220}>
-        <PieChartComp>
-          <Pie
-            data={[
-              { name: "Approved", value: reservations.filter((r) => r.status === "approved").length },
-              { name: "Pending", value: reservations.filter((r) => r.status === "pending").length },
-              { name: "Rejected", value: reservations.filter((r) => r.status === "rejected").length },
-            ]}
-            cx="50%"
-            cy="50%"
-            outerRadius={70}
-            fill="#8884d8"
-            dataKey="value"
-            label
-          >
-            {COLORS.map((color, i) => (
-              <Cell key={i} fill={color} />
-            ))}
-          </Pie>
-          <Tooltip />
-        </PieChartComp>
-      </ResponsiveContainer>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="font-semibold text-gray-700 flex items-center gap-2">
+          <CalendarDays className="text-emerald-500" size={18} /> Bookings Overview
+        </h2>
+        <div className="text-right">
+          <div className="text-lg font-bold text-gray-900">{totalBookings}</div>
+          <div className="text-sm text-gray-400">Total Bookings</div>
+        </div>
+      </div>
+      <Line data={lineData} options={lineOptions} height={220} />
     </div>
-  </div>
-);
+  );
+};
 
 export default ChartsSection;

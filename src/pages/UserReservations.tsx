@@ -257,7 +257,7 @@ const UserReservations: React.FC = () => {
         <BillingModal
           isOpen={isBillingOpen}
           onClose={closeBillingModal}
-          reservationId={selectedReservation._id}
+          renterId={selectedReservation.renterId}
           totalPrice={billingAmount}
         />
       )}

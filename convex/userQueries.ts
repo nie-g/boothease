@@ -27,6 +27,7 @@ export const getUserById = query({
     return {
       firstname: user.firstName,
       lastname: user.lastName,
+      role: user.role,
       fullname: `${user.firstName} ${user.lastName}`,
       email: user.email,
       id: user._id.toString(),

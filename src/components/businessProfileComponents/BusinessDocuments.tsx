@@ -12,6 +12,8 @@ import {
   Clock,
 } from "lucide-react";
 import AddDocumentModal from "./AddDocument";
+import DocumentDetailsModal from "./DocumentDetails";
+import EditDocumentModal from "./EditDocument";
 
 type BusinessDocumentType = {
   _id: Id<"businessDocuments">;
@@ -19,8 +21,8 @@ type BusinessDocumentType = {
   businessProfileId: Id<"business_profiles">;
   title: string;
   type: "permit" | "license" | "id" | "contract" | "other";
-  file: Id<"_storage">;
-  status: "pending" | "approved" | "rejected";
+  files?: Id<"_storage">[];
+  status: "pending" | "verified" | "rejected";
   uploadedAt: number;
   reviewedBy?: Id<"users">;
   reviewedAt?: number;
@@ -34,6 +36,10 @@ const BusinessDocuments: React.FC = () => {
     direction: "asc",
   });
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<Id<"businessDocuments"> | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<BusinessDocumentType | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   /** Fetch current user */
   const currentUser = useQuery(
@@ -52,7 +58,30 @@ const BusinessDocuments: React.FC = () => {
     currentUser?._id ? { userId: currentUser._id } : "skip"
   ) as BusinessDocumentType[] | null | undefined;
 
-  
+  // Handler functions for modals
+  const openDetails = (doc: BusinessDocumentType) => {
+    setSelectedDocumentId(doc._id);
+    setSelectedDocument(doc);
+    setIsDetailsOpen(true);
+  };
+
+  const openEdit = (doc: BusinessDocumentType) => {
+    setSelectedDocumentId(doc._id);
+    setSelectedDocument(doc);
+    setIsEditOpen(true);
+  };
+
+  const closeDetails = () => {
+    setIsDetailsOpen(false);
+    setSelectedDocumentId(null);
+    setSelectedDocument(null);
+  };
+
+  const closeEdit = () => {
+    setIsEditOpen(false);
+    setSelectedDocumentId(null);
+    setSelectedDocument(null);
+  };
 
 
   const sortedList = useMemo(() => {
@@ -90,6 +119,7 @@ const BusinessDocuments: React.FC = () => {
           <p className="text-gray-600 text-sm">View and manage all your uploaded documents</p>
         </div>
         <button
+          type="button"
           onClick={() => setModalOpen(true)}
           className="bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-600"
         >
@@ -146,9 +176,9 @@ const BusinessDocuments: React.FC = () => {
                     {doc.type.charAt(0).toUpperCase() + doc.type.slice(1)}
                   </td>
                   <td className="px-6 py-4 text-sm">
-                    {doc.status === "approved" && (
+                    {doc.status === "verified" && (
                       <span className="flex items-center gap-1 text-green-500">
-                        <CheckCircle size={16} /> Approved
+                        <CheckCircle size={16} /> Verified
                       </span>
                     )}
                     {doc.status === "pending" && (
@@ -163,10 +193,18 @@ const BusinessDocuments: React.FC = () => {
                     )}
                   </td>
                   <td className="px-2 py-4 text-center text-sm flex justify-center gap-2">
-                    <button className="bg-teal-500 text-white font-semibold hover:bg-teal-600 px-3 py-2 rounded-md flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => openDetails(doc)}
+                      className="bg-teal-500 text-white font-semibold hover:bg-teal-600 px-3 py-2 rounded-md flex items-center gap-1"
+                    >
                      View Details
                     </button>
-                    <button className="bg-emerald-500 text-white font-semibold hover:bg-emerald-600 px-3 py-2 rounded-md flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(doc)}
+                      className="bg-emerald-500 text-white font-semibold hover:bg-emerald-600 px-3 py-2 rounded-md flex items-center gap-1"
+                    >
                      Edit Details
                     </button>
                   </td>
@@ -185,6 +223,24 @@ const BusinessDocuments: React.FC = () => {
           userId={currentUser._id}
           businessProfileId={businessProfile._id}
           onUploadSuccess={() => setModalOpen(false)}
+        />
+      )}
+
+      {/* Document Details Modal */}
+      {selectedDocumentId && (
+        <DocumentDetailsModal
+          isOpen={isDetailsOpen}
+          onClose={closeDetails}
+          documentId={selectedDocumentId}
+        />
+      )}
+
+      {/* Edit Document Modal */}
+      {selectedDocument && (
+        <EditDocumentModal
+          isOpen={isEditOpen}
+          onClose={closeEdit}
+          document={selectedDocument}
         />
       )}
     </motion.div>

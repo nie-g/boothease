@@ -1,19 +1,19 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ScanHeart, LayoutGrid } from "lucide-react";
+import { BookOpen, LayoutGrid } from "lucide-react";
 
 interface DataSectionsProps {
-  likedEvents: any[];
+  bookedEvents: any[];
   previousBookings: any[];
 }
 
-const DataSections: React.FC<DataSectionsProps> = ({ likedEvents, previousBookings }) => (
+const DataSections: React.FC<DataSectionsProps> = ({ bookedEvents, previousBookings }) => (
   <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
     <DataCard
-      title="Liked Events"
-      icon={<ScanHeart className="text-gray-700" size={20} />}
-      items={likedEvents}
-      type="event"
+      title="Booked Events"
+      icon={<BookOpen className="text-gray-700" size={20} />}
+      items={bookedEvents}
+      type="booking"
     />
     <DataCard
       title="Previous Bookings"
@@ -48,14 +48,21 @@ const DataCard = ({
             key={item._id}
             className="border border-gray-100 bg-gray-50 p-3 hover:shadow-md transition"
           >
-            {type === "event" ? (
+            {type === "booking" ? (
               <>
                 <h4 className="font-medium text-gray-800">
-                  {item.event?.title || "Untitled Event"}
+                  {item.booth?.name || "Untitled Booth"} — ₱{item.totalPrice?.toLocaleString()}
                 </h4>
                 <p className="text-sm text-gray-500">
-                  {new Date(item.event?.startDate).toLocaleDateString()} –{" "}
-                  {new Date(item.event?.endDate).toLocaleDateString()}
+                  {new Date(item.startDate).toLocaleDateString()} →{" "}
+                  {new Date(item.endDate).toLocaleDateString()}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Status: <span className={`font-semibold ${
+                    item.status === "approved" ? "text-green-600" :
+                    item.status === "pending" ? "text-yellow-600" :
+                    "text-red-600"
+                  }`}>{item.status}</span>
                 </p>
               </>
             ) : (

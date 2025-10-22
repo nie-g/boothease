@@ -160,6 +160,11 @@ billing: defineTable({
   clientId: v.id("users"),      // renter/user who booked
   numberOfDays: v.number(),     // total days of the reservation
   amount: v.number(),
+  paymentStatus: v.union(
+    v.literal("pending"),
+    v.literal("paid"),
+    v.literal("refunded")
+  ),
   transactionDate: v.string(),  // ISO format
 }).index("by_reservation", ["reservationId"])
   .index("by_client", ["clientId"]),
@@ -204,13 +209,6 @@ event_images: defineTable({
 
 /*....................event likes...................*/
 
-event_likes: defineTable({
-  eventId: v.id("events"),  // The event that was liked
-  userId: v.id("users"),    // The user who liked the event
-  createdAt: v.number(),    // Timestamp for when the like happened
-})
-  .index("by_event", ["eventId"])
-  .index("by_user", ["userId"])
-  .index("by_event_user", ["eventId", "userId"]), // helpful for checking if already liked
+
 
 });

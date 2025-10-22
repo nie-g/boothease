@@ -7,6 +7,7 @@ import { Search, FileText, ArrowUpDown, Eye } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/UsersNavbar";
 import ReservationDetailsModal from "../components/ownReservationComponents/ReservationDetails";
+import BillingModal from "../components/ownReservationComponents/BillingModal";
 import type { Id } from "../../convex/_generated/dataModel";
 
 interface ReservationType {
@@ -33,6 +34,8 @@ const OwnerReservations: React.FC = () => {
   const [selectedReservation, setSelectedReservation] =
     useState<ReservationType | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBillingOpen, setIsBillingOpen] = useState(false);
+  const [billingAmount, setBillingAmount] = useState<number>(0);
 
   const user = useQuery(
     api.userQueries.getUserByClerkId,
@@ -104,6 +107,14 @@ const OwnerReservations: React.FC = () => {
     setIsModalOpen(false);
     setSelectedReservation(null);
   };
+
+  const openBillingModal = (reservation: ReservationType) => {
+    setSelectedReservation(reservation);
+    setBillingAmount(reservation.totalPrice);
+    setIsBillingOpen(true);
+  };
+
+  const closeBillingModal = () => setIsBillingOpen(false);
 
   return (
     <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-[#ebeff5] overflow-hidden">
@@ -224,13 +235,23 @@ const OwnerReservations: React.FC = () => {
                           <td className="px-3 py-4 text-sm text-gray-600">
                             ₱{res.totalPrice.toLocaleString()}
                           </td>
-                          <td className="px-3 py-4 text-center">
+                          <td className="px-3 py-4 text-center flex justify-center gap-2">
                             <button
+                              type="button"
                               onClick={() => openModal(res)}
                               className="text-blue-600 hover:text-blue-900 px-3 py-1 hover:bg-blue-50 rounded-md inline-flex items-center gap-1 text-sm"
                             >
                               <Eye className="w-4 h-4" /> Manage
                             </button>
+                            {res.status === "approved" && (
+                              <button
+                                type="button"
+                                onClick={() => openBillingModal(res)}
+                                className="text-teal-600 hover:text-teal-900 px-3 py-1 hover:bg-teal-50 rounded-md inline-flex items-center gap-1 text-sm"
+                              >
+                                <FileText className="w-4 h-4" /> View Bill
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -248,6 +269,15 @@ const OwnerReservations: React.FC = () => {
           isOpen={isModalOpen}
           onClose={closeModal}
           reservationId={selectedReservation._id}
+        />
+      )}
+
+      {selectedReservation && (
+        <BillingModal
+          isOpen={isBillingOpen}
+          onClose={closeBillingModal}
+          renterId={selectedReservation.renterId}
+          totalPrice={billingAmount}
         />
       )}
     </div>

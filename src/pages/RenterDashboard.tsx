@@ -6,9 +6,8 @@ import { api } from "../../convex/_generated/api";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/UsersNavbar";
 import SummaryCards from "./renterDashboard/SummaryCards";
-import ChartsSection from "./renterDashboard/ChartsSection";
-import DataSections from "./renterDashboard/DataSection";
 import HeaderSection from "./renterDashboard/HeaderSection";
+import QuickActionsSection from "./renterDashboard/QuickActions";
 
 
 const UserDashboard: React.FC = () => {
@@ -20,32 +19,29 @@ const UserDashboard: React.FC = () => {
     user?.id ? { clerkId: user.id } : "skip"
   );
 
-  const likedEvents = useQuery(
-    api.event_likes.getLikedEventsByUser,
-    dbUser?._id ? { userId: dbUser._id } : "skip"
-  );
-
   const reservations = useQuery(
     api.reservations.getByRenter,
     dbUser?._id ? { renterId: dbUser._id } : "skip"
   );
 
+
+
+  // Split reservations into upcoming & past
   const now = new Date();
-  const previousBookings = useMemo(
+  const pastReservations = useMemo(
     () => reservations?.filter((r) => new Date(r.endDate) < now) || [],
     [reservations]
   );
-  const upcomingBookings = useMemo(
+  const upcomingReservations = useMemo(
     () => reservations?.filter((r) => new Date(r.startDate) > now) || [],
     [reservations]
   );
 
-  // Chart Data
-  const chartData =
-    reservations?.map((r) => ({
-      month: new Date(r.startDate).toLocaleString("default", { month: "short" }),
-      bookings: 1,
-    })) || [];
+  // Optional: Chart data (monthly bookings)
+
+  // Helper functions for event/booth names
+    
+  
 
   if (dbUser === undefined) {
     return (
@@ -58,23 +54,22 @@ const UserDashboard: React.FC = () => {
   return (
     <div className="w-screen h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-[#ebeff5] overflow-hidden">
       {/* Navbar */}
-    <div className="w-full flex-none h-[8vh] md:h-[13vh]">
-      <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-    </div>
+      <div className="w-full flex-none h-[8vh] md:h-[13vh]">
+        <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-       <aside
-        className={`
-          fixed top-0 left-0 h-full z-50 w-64 bg-[#E7EBEE] border-r border-gray-200
-          transform transition-transform duration-300 ease-in-out
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          md:translate-x-0 md:static md:w-64
-        `}
-      >
-        <Sidebar setSidebarOpen={setSidebarOpen} />
-      </aside>
-
+        <aside
+          className={`
+            fixed top-0 left-0 h-full z-50 w-64 bg-[#E7EBEE] border-r border-gray-200
+            transform transition-transform duration-300 ease-in-out
+            ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+            md:translate-x-0 md:static md:w-64
+          `}
+        >
+          <Sidebar setSidebarOpen={setSidebarOpen} />
+        </aside>
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6 md:p-10 space-y-10">
@@ -84,25 +79,21 @@ const UserDashboard: React.FC = () => {
             transition={{ duration: 0.4, ease: "easeOut" }}
             className="space-y-10"
           >
-            {/* Welcome Header */}
+            {/* Header */}
             <HeaderSection />
 
             {/* Summary Cards */}
             <SummaryCards
-              likedEventsCount={likedEvents?.length || 0}
+              bookedEventsCount={reservations?.length || 0}
               totalBookings={reservations?.length || 0}
-              previousCount={previousBookings.length}
-              upcomingCount={upcomingBookings.length}
+              previousCount={pastReservations.length}
+              upcomingCount={upcomingReservations.length}
             />
 
-            {/* Charts */}
-            <ChartsSection chartData={chartData} reservations={reservations ?? []} />
+            <QuickActionsSection />
 
-            {/* Data Lists */}
-            <DataSections
-              likedEvents={likedEvents ?? []}
-              previousBookings={previousBookings}
-            />
+            {/* Overview Chart */}
+            
           </motion.div>
         </main>
       </div>
