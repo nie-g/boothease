@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import {
-  Home, Palette, Images, Bell as BellIcon, Users, CircleUser, NotebookPenIcon, X
+  Home, Palette, Images, Bell as BellIcon, Users, CircleUser, NotebookPenIcon, X,
+  ChartNoAxesColumnIncreasing
 } from "lucide-react";
 import logoIcon from "../assets/BoothEaseLogo.png";
 import { useUnreadNotificationCount } from "../hooks/UnreadNotificationsCount";
@@ -49,8 +50,9 @@ const Sidebar: React.FC<SidebarProps> = ({ setSidebarOpen }) => {
           { name: "Dashboard", icon: <Home />, route: "/admin" },
           { name: "Users", icon: <Users />, route: "/admin/users" },
           { name: "Events & Booths", icon: <Palette />, route: "/admin/events" },
-          { name: "Notifications", icon: <BellIcon />, route: "/notifications" },
           { name: "Manage Business Documents", icon: <NotebookPenIcon />, route: "/admin/managebusinessdocuments" },
+          { name: "Reports", icon: <ChartNoAxesColumnIncreasing />, route: "/admin/reports" },
+          { name: "Notifications", icon: <BellIcon />, route: "/notifications" },
         ];
       case "owner":
         return [

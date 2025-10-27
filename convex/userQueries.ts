@@ -43,3 +43,15 @@ export const getById = query({
     return user;
   },
 });
+
+export const listAllUsersWithFullName = query({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+
+    return users.map((user) => ({
+      ...user,
+      fullname: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "Unknown",
+    }));
+  },
+});

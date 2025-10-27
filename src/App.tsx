@@ -21,6 +21,7 @@ import RegisterOwner from './pages/RegisterOwner';
 import RegisterAdmin from './pages/RegisterAdmin';
 import Notifications from './pages/Notifications';
 import ManageBusinessDocuments from './pages/ManageBusinessDocuments';
+import AdminReports from './pages/AdminReportsPage';
 import { AuthenticateWithRedirectCallback } from "@clerk/clerk-react";
 import { Toaster } from "react-hot-toast";
 
@@ -57,6 +58,7 @@ function App() {
         <Route path="/renter/reservations" element={<UserReservations />} />
         <Route path="/owner/reservations" element={<OwnerReservations />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/admin/reports" element={<AdminReports />} />
       </Routes>
     </BrowserRouter>
   )

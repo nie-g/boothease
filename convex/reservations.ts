@@ -13,6 +13,57 @@ export const listAllReservations = query({
   },
 });
 
+export const listAllReservationsWithDetails = query({
+  args: {},
+  handler: async (ctx) => {
+    const reservations = await ctx.db.query("reservations").collect();
+
+    // Fetch detailed information for each reservation
+    const reservationsWithDetails = await Promise.all(
+      reservations.map(async (reservation) => {
+        // Fetch booth details
+        const booth = await ctx.db.get(reservation.boothId);
+        let boothName = "Unknown";
+        let ownerName = "Unknown";
+        let totalAmount = reservation.totalPrice || 0;
+
+        if (booth) {
+          boothName = booth.name || "Unknown";
+
+          // Fetch owner details from booth
+          if (booth.ownerId) {
+            const owner = await ctx.db.get(booth.ownerId);
+            if (owner) {
+              const fullName = [owner.firstName, owner.lastName].filter(Boolean).join(" ");
+              ownerName = fullName.trim() || "Unknown";
+            }
+          }
+        }
+
+        // Fetch billing information if available
+        const billing = await ctx.db
+          .query("billing")
+          .filter((q) => q.eq(q.field("reservationId"), reservation._id))
+          .first();
+
+        if (billing) {
+          totalAmount = billing.amount || reservation.totalPrice || 0;
+        }
+
+        return {
+          ...reservation,
+          boothName,
+          ownerName,
+          totalAmount,
+          paymentStatus: billing?.paymentStatus || "pending",
+        };
+      })
+    );
+
+    return reservationsWithDetails;
+  },
+});
+
 export const getById = query({
   args: { reservationId: v.id("reservations") },
   handler: async (ctx, args) => {

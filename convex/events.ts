@@ -13,6 +13,32 @@ export const listAllEvents = query({
   },
 });
 
+export const listAllEventsWithOrganizer = query({
+  args: {},
+  handler: async (ctx) => {
+    const events = await ctx.db.query("events").collect();
+
+    // Fetch each event's organizer details from createdBy
+    const eventsWithOrganizer = await Promise.all(
+      events.map(async (event) => {
+        let organizerName = "Unknown";
+
+        if (event.createdBy) {
+          const organizer = await ctx.db.get(event.createdBy);
+          if (organizer) {
+            const fullName = [organizer.firstName, organizer.lastName].filter(Boolean).join(" ");
+            organizerName = fullName.trim() || "Unknown";
+          }
+        }
+
+        return { ...event, organizerName };
+      })
+    );
+
+    return eventsWithOrganizer;
+  },
+});
+
 /* =====================
    🏁 CREATE EVENT
 ===================== */

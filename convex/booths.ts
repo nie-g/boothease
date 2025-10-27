@@ -196,3 +196,29 @@ export const updateBooth = mutation({
     await ctx.db.patch(boothId, data);
   },
 });
+
+export const listAllBoothsWithOwner = query({
+  args: {},
+  handler: async (ctx) => {
+    const booths = await ctx.db.query("booths").collect();
+
+    // Fetch each booth’s owner details
+    const boothsWithOwner = await Promise.all(
+      booths.map(async (booth) => {
+        let ownerName = "Unknown";
+
+        if (booth.ownerId) {
+          const owner = await ctx.db.get(booth.ownerId);
+          if (owner) {
+            const fullName = [owner.firstName, owner.lastName].filter(Boolean).join(" ");
+            ownerName = fullName.trim() || "Unknown";
+          }
+        }
+
+        return { ...booth, ownerName };
+      })
+    );
+
+    return boothsWithOwner;
+  },
+});
